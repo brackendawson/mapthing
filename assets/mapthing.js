@@ -9,24 +9,68 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 
 new L.GPX("trace.gpx", {async: true}).on('loaded', function(e) {
     map.fitBounds(e.target.getBounds());
-  }).addTo(map);
+}).addTo(map);
 
-var data = [12, 19, 3, 5, 2, 3];
-var options = {
-    responsive:true,
-    maintainAspectRatio: false,
-    scales: {
-        yAxes: [{
-            ticks: {
-                beginAtZero: true
-            }
-        }]
+function getDistance(lat1,lon1,lat2,lon2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2-lat1);  // deg2rad below
+    var dLon = deg2rad(lon2-lon1); 
+    var a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+      ; 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c; // Distance in km
+    return d;
+  }
+  
+function deg2rad(deg) {
+    return deg * (Math.PI/180)
+}
+
+gpxParse.parseRemoteGpxFile("trace.gpx", function(error, data) {
+    if (error != null) {
+        throw error
     }
-};
-
-var graphContainer = document.getElementById("chart")
-var graph = new Chart(graphContainer, {
-    type: 'line',
-    data: data,
-    options: options
+    var speedArr = []
+    var cumultiveDistance = 0
+    lastPoint = data.tracks[0].segments[0][0]
+    data.tracks[0].segments[0].map(function(point) {
+        var distance = getDistance(lastPoint.lat, lastPoint.lon, point.lat, point.lon)
+        cumultiveDistance += distance
+        var time = point.time.getSeconds() - lastPoint.time.getSeconds()
+        var speed = distance / time
+        speedArr.push({x: cumultiveDistance, y: speed})
+        lastPoint = point
+    })
+    var chartContainer = document.getElementById("chart")
+    var chart = new Chart(chartContainer, {
+        type: 'scatter',
+        data: {
+            datasets: [{ 
+                data: speedArr,
+                label: "Pace (min/km)",
+                borderColor: "#3e95cd",
+                fill: false,
+                showLine: true,
+                pointRadius: 0,
+              }
+            ]
+          },
+        options: {
+            responsive:true,
+            maintainAspectRatio: false,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+            legend: {
+                position: "bottom"
+            }
+        }
+    });
 });
