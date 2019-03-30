@@ -65,7 +65,7 @@ client.onreadystatechange = function () {
         console.log("Second half: " + secondHalfTime)
         split = secondHalfTime - firstHalfTime
         console.log("Split: " + split)
-        document.getElementById("split").innerHTML = `<p>Split: ${split}s</p>`
+        document.getElementById("split").innerHTML = `Split: ${split}s`
 
         new L.GPX(rawGPX, { async: true }).on('loaded', function (e) {
             map.fitBounds(e.target.getBounds());
