@@ -36,21 +36,39 @@ gpxParse.parseRemoteGpxFile("trace.gpx", function(error, data) {
     var speedArr = []
     var cumultiveDistance = 0
     lastPoint = data.tracks[0].segments[0][0]
+    firstTime = data.tracks[0].segments[0][0].time
+
     data.tracks[0].segments[0].map(function(point) {
         var distance = getDistance(lastPoint.lat, lastPoint.lon, point.lat, point.lon)
         cumultiveDistance += distance
-        var time = point.time.getSeconds() - lastPoint.time.getSeconds()
+        var time = (point.time - lastPoint.time) / (1000 * 3600)
         var speed = distance / time
-        speedArr.push({x: cumultiveDistance, y: speed})
+        speedArr.push({x: cumultiveDistance, y: speed, t: point.time})
         lastPoint = point
     })
+
+    console.log("Total dist: " + speedArr[speedArr.length-1].x)
+    var halfWay = speedArr[speedArr.length-1].x / 2
+    console.log("Half way: " + halfWay)
+    var midTime = speedArr.find(function(e) {
+        return e.x > halfWay
+    }).t
+    console.log(midTime)
+    firstHalfTime = (midTime - speedArr[0].t) / 1000
+    console.log("First half: " + firstHalfTime)
+    secondHalfTime = (speedArr[speedArr.length-1].t - midTime) / 1000
+    console.log("Second half: " + secondHalfTime)
+    split = secondHalfTime - firstHalfTime
+    console.log("Split: " + split)
+    document.getElementById("split").innerHTML = `<p>Split: ${split}s</p>`
+
     var chartContainer = document.getElementById("chart")
     var chart = new Chart(chartContainer, {
         type: 'scatter',
         data: {
             datasets: [{ 
                 data: speedArr,
-                label: "Pace (min/km)",
+                label: "Pace (km/h)",
                 borderColor: "#3e95cd",
                 fill: false,
                 showLine: true,

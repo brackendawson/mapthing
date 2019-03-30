@@ -16,3 +16,13 @@ body {
     z-index: 10;
     background-color: #ffffff80;
 }
+
+#split {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    z-index: 10;
+    background-color: #ffffff80;
+    font: helvitica;
+    font-size: 50;
+}
